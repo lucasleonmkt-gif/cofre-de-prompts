@@ -38,6 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
     saveToStorage();
     saveFoldersToStorage();
     renderView();
+    if (getSyncUrl()) pushToSheets();
 
     // Event Listeners
     openModalBtn.addEventListener('click', () => openPromptModal());
@@ -436,8 +437,8 @@ async function copyPrompt(btn, text) {
     } catch (err) { showToast('Error al copiar', 'danger'); }
 }
 
-function saveToStorage() { localStorage.setItem('prompts', JSON.stringify(prompts)); }
-function saveFoldersToStorage() { localStorage.setItem('folders', JSON.stringify(folders)); }
+function saveToStorage() { localStorage.setItem('prompts', JSON.stringify(prompts)); scheduleAutoSync(); }
+function saveFoldersToStorage() { localStorage.setItem('folders', JSON.stringify(folders)); scheduleAutoSync(); }
 
 function showToast(message, type = 'success') {
     const t = document.createElement('div');
@@ -449,3 +450,93 @@ function showToast(message, type = 'success') {
 
 function escapeHTML(str) { const d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
 function escapeJS(str) { return str.replace(/`/g, '\\`').replace(/\$/g, '\\$'); }
+
+// ========================
+// GOOGLE SHEETS SYNC
+// ========================
+const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwOzCslhNvHJZVksZPBXq3XAKeulvDkJr-L4Z-CWJKy7jN67xQLOKxFo2jZR6I1jTFq/exec';
+function getSyncUrl() { return SHEETS_URL; }
+function setSyncUrl(url) { /* URL fija */ }
+
+let autoSyncTimer = null;
+
+function scheduleAutoSync() {
+    if (!getSyncUrl()) return;
+    clearTimeout(autoSyncTimer);
+    setSyncIndicator('pending');
+    autoSyncTimer = setTimeout(pushToSheets, 1500);
+}
+
+function setSyncIndicator(state) {
+    const btn = document.getElementById('syncToBtn');
+    if (!btn) return;
+    if (state === 'pending')  { btn.textContent = '☁️ Guardando...'; btn.disabled = true; }
+    if (state === 'ok')       { btn.textContent = '☁️ Guardado ✓';  btn.disabled = false; setTimeout(() => { btn.textContent = '☁️ Guardar'; }, 2000); }
+    if (state === 'idle')     { btn.textContent = '☁️ Guardar';      btn.disabled = false; }
+    if (state === 'error')    { btn.textContent = '☁️ Error';        btn.disabled = false; setTimeout(() => { btn.textContent = '☁️ Guardar'; }, 3000); }
+}
+
+async function pushToSheets() {
+    const url = getSyncUrl();
+    if (!url) return;
+    try {
+        const data = encodeURIComponent(JSON.stringify({ prompts, folders }));
+        const res = await fetch(`${url}?action=save&data=${data}`);
+        const json = await res.json();
+        console.log('Sheets save response:', json);
+        setSyncIndicator('ok');
+    } catch (err) {
+        console.error('Sheets save error:', err);
+        showToast('Error: ' + err.message, 'danger');
+        setSyncIndicator('error');
+    }
+}
+
+function configureSyncUrl() {
+    const current = getSyncUrl();
+    const url = prompt('Pega aquí la URL de tu Google Apps Script Web App:', current || '');
+    if (url && url.trim()) {
+        setSyncUrl(url.trim());
+        showToast('URL guardada — sincronizando...');
+        pushToSheets();
+    }
+}
+
+async function syncToSheets() {
+    let url = getSyncUrl();
+    if (!url) {
+        url = prompt('Pega aquí la URL de tu Google Apps Script Web App:');
+        if (!url || !url.trim()) return;
+        setSyncUrl(url.trim());
+    }
+    clearTimeout(autoSyncTimer);
+    setSyncIndicator('pending');
+    await pushToSheets();
+}
+
+async function loadFromSheets() {
+    let url = getSyncUrl();
+    if (!url) {
+        url = prompt('Pega aquí la URL de tu Google Apps Script Web App:');
+        if (!url || !url.trim()) return;
+        setSyncUrl(url.trim());
+        url = url.trim();
+    }
+    const btn = document.getElementById('syncFromBtn');
+    btn.disabled = true;
+    btn.textContent = '⏳ Cargando...';
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+        // Load without triggering auto-sync loop
+        if (Array.isArray(data.prompts)) { prompts = data.prompts; localStorage.setItem('prompts', JSON.stringify(prompts)); }
+        if (Array.isArray(data.folders)) { folders = data.folders; localStorage.setItem('folders', JSON.stringify(folders)); }
+        renderView();
+        showToast('📥 Datos cargados desde Sheets');
+    } catch (err) {
+        showToast('Error al cargar desde Sheets', 'danger');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = '📥 Cargar';
+    }
+}

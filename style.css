@@ -754,6 +754,68 @@ header {
     to { transform: translateX(100%); opacity: 0; }
 }
 
+/* Sync Buttons */
+.sync-group {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0.35rem 0.5rem;
+}
+
+.btn-sync {
+    background: transparent;
+    color: var(--text-muted);
+    border: none;
+    padding: 0.45rem 0.85rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: 'Outfit', sans-serif;
+    white-space: nowrap;
+}
+
+.btn-sync:hover:not(:disabled) {
+    background: var(--bg-input);
+    color: var(--text-main);
+}
+
+.btn-sync:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-sync-save {
+    color: #34d399;
+}
+
+.btn-sync-save:hover:not(:disabled) {
+    background: rgba(52, 211, 153, 0.1);
+    color: #34d399;
+}
+
+.btn-sync-config {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 0.35rem 0.5rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+    font-family: 'Outfit', sans-serif;
+}
+
+.btn-sync-config:hover {
+    opacity: 1;
+    background: var(--bg-input);
+}
+
 /* Responsive */
 @media (max-width: 640px) {
     header {

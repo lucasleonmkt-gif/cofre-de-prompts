@@ -22,6 +22,10 @@
                 <span class="search-icon">🔍</span>
             </div>
             <div class="header-actions">
+                <div class="sync-group">
+                    <button id="syncFromBtn" class="btn-sync" onclick="loadFromSheets()" title="Cargar desde Google Sheets">📥 Cargar</button>
+                    <button id="syncToBtn" class="btn-sync btn-sync-save" onclick="syncToSheets()" title="Guardar en Google Sheets">☁️ Guardar</button>
+                </div>
                 <button id="openFolderModalBtn" class="btn-secondary btn-folder" title="Nueva Carpeta">
                     <span>📁</span> Nueva Carpeta
                 </button>
