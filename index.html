@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PromptVault | Tu Almacén de Prompts Premium</title>
+    <meta name="description" content="Organiza, guarda y copia tus prompts favoritos con un solo clic en una interfaz elegante y moderna.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <div class="logo">
+                <span class="icon">✨</span>
+                <h1>Prompt<span>Vault</span></h1>
+            </div>
+            <div class="search-container">
+                <input type="text" id="searchInput" placeholder="Buscar prompts...">
+                <span class="search-icon">🔍</span>
+            </div>
+            <div class="header-actions">
+                <button id="openFolderModalBtn" class="btn-secondary btn-folder" title="Nueva Carpeta">
+                    <span>📁</span> Nueva Carpeta
+                </button>
+                <button id="openModalBtn" class="btn-primary">
+                    <span class="plus">+</span> Nuevo Prompt
+                </button>
+            </div>
+        </header>
+
+        <!-- Breadcrumb Navigation -->
+        <nav id="breadcrumb" class="breadcrumb hidden">
+            <button class="breadcrumb-item breadcrumb-root" onclick="navigateToFolder(null)">
+                <span>🏠</span> Inicio
+            </button>
+        </nav>
+
+        <main>
+            <div id="promptsGrid" class="prompts-grid">
+                <!-- Folders and Prompts will be rendered here -->
+            </div>
+            
+            <div id="emptyState" class="empty-state hidden">
+                <div class="empty-icon">📂</div>
+                <h2>No hay prompts aún</h2>
+                <p>Comienza agregando tu primer prompt o creando una carpeta para organizar.</p>
+                <button id="emptyStateBtn" class="btn-secondary">Crear mi primer prompt</button>
+            </div>
+        </main>
+
+        <!-- Modal for adding/editing prompts -->
+        <div id="promptModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="modalTitle">Nuevo Prompt</h2>
+                    <button class="close-modal">&times;</button>
+                </div>
+                <form id="promptForm">
+                    <div class="form-group">
+                        <label for="promptTitle">Título</label>
+                        <input type="text" id="promptTitle" placeholder="Ej: Generador de Títulos" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="promptContent">Contenido del Prompt</label>
+                        <textarea id="promptContent" rows="8" placeholder="Escribe o pega tu prompt aquí..." required></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn-ghost close-modal">Cancelar</button>
+                        <button type="submit" class="btn-primary">Guardar Prompt</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Modal for creating/renaming folders -->
+        <div id="folderModal" class="modal">
+            <div class="modal-content modal-small">
+                <div class="modal-header">
+                    <h2 id="folderModalTitle">Nueva Carpeta</h2>
+                    <button class="close-folder-modal">&times;</button>
+                </div>
+                <form id="folderForm">
+                    <div class="form-group">
+                        <label for="folderName">Nombre de la Carpeta</label>
+                        <input type="text" id="folderName" placeholder="Ej: Prompts de Marketing" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn-ghost close-folder-modal">Cancelar</button>
+                        <button type="submit" class="btn-primary">
+                            <span>📁</span> Crear Carpeta
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Toast Notifications -->
+        <div id="toastContainer" class="toast-container"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
