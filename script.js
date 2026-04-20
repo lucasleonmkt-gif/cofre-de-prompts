@@ -35,8 +35,8 @@ document.addEventListener('DOMContentLoaded', () => {
         folderId: p.folderId || null
     }));
     
-    saveToStorage();
-    saveFoldersToStorage();
+    localStorage.setItem('prompts', JSON.stringify(prompts));
+    localStorage.setItem('folders', JSON.stringify(folders));
     renderView();
     if (getSyncUrl()) loadSilentFromSheets();
 
@@ -448,8 +448,8 @@ function showToast(message, type = 'success') {
     setTimeout(() => { t.classList.add('fade-out'); setTimeout(() => t.remove(), 300); }, 3000);
 }
 
-function escapeHTML(str) { const d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
-function escapeJS(str) { return str.replace(/`/g, '\\`').replace(/\$/g, '\\$'); }
+function escapeHTML(str) { const d = document.createElement('div'); d.textContent = String(str ?? ''); return d.innerHTML; }
+function escapeJS(str) { return String(str ?? '').replace(/`/g, '\\`').replace(/\$/g, '\\$'); }
 
 // ========================
 // GOOGLE SHEETS SYNC
@@ -476,13 +476,27 @@ function setSyncIndicator(state) {
     if (state === 'error')    { btn.textContent = '☁️ Error';        btn.disabled = false; setTimeout(() => { btn.textContent = '☁️ Guardar'; }, 3000); }
 }
 
+function normalizeFromSheets(items) {
+    return items.map(item => {
+        const out = {};
+        for (const k in item) out[k] = item[k];
+        if (out.id != null)       out.id       = String(out.id);
+        if (out.folderId != null) out.folderId = String(out.folderId);
+        if (out.parentId != null) out.parentId = String(out.parentId);
+        if (out.title != null)    out.title    = String(out.title);
+        if (out.content != null)  out.content  = String(out.content);
+        if (out.name != null)     out.name     = String(out.name);
+        return out;
+    });
+}
+
 async function loadSilentFromSheets() {
     try {
         const url = getSyncUrl();
         const response = await fetch(url);
         const data = await response.json();
-        if (Array.isArray(data.prompts)) { prompts = data.prompts; localStorage.setItem('prompts', JSON.stringify(prompts)); }
-        if (Array.isArray(data.folders)) { folders = data.folders; localStorage.setItem('folders', JSON.stringify(folders)); }
+        if (Array.isArray(data.prompts)) { prompts = normalizeFromSheets(data.prompts); localStorage.setItem('prompts', JSON.stringify(prompts)); }
+        if (Array.isArray(data.folders)) { folders = normalizeFromSheets(data.folders); localStorage.setItem('folders', JSON.stringify(folders)); }
         renderView();
     } catch (err) {
         console.error('Error cargando desde Sheets:', err);
@@ -494,13 +508,10 @@ async function pushToSheets() {
     if (!url) return;
     try {
         const data = encodeURIComponent(JSON.stringify({ prompts, folders }));
-        const res = await fetch(`${url}?action=save&data=${data}`);
-        const json = await res.json();
-        console.log('Sheets save response:', json);
+        await fetch(`${url}?action=save&data=${data}`, { mode: 'no-cors' });
         setSyncIndicator('ok');
     } catch (err) {
         console.error('Sheets save error:', err);
-        showToast('Error: ' + err.message, 'danger');
         setSyncIndicator('error');
     }
 }
@@ -542,8 +553,8 @@ async function loadFromSheets() {
         const response = await fetch(url);
         const data = await response.json();
         // Load without triggering auto-sync loop
-        if (Array.isArray(data.prompts)) { prompts = data.prompts; localStorage.setItem('prompts', JSON.stringify(prompts)); }
-        if (Array.isArray(data.folders)) { folders = data.folders; localStorage.setItem('folders', JSON.stringify(folders)); }
+        if (Array.isArray(data.prompts)) { prompts = normalizeFromSheets(data.prompts); localStorage.setItem('prompts', JSON.stringify(prompts)); }
+        if (Array.isArray(data.folders)) { folders = normalizeFromSheets(data.folders); localStorage.setItem('folders', JSON.stringify(folders)); }
         renderView();
         showToast('📥 Datos cargados desde Sheets');
     } catch (err) {
