@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
     saveToStorage();
     saveFoldersToStorage();
     renderView();
-    if (getSyncUrl()) pushToSheets();
+    if (getSyncUrl()) loadSilentFromSheets();
 
     // Event Listeners
     openModalBtn.addEventListener('click', () => openPromptModal());
@@ -474,6 +474,19 @@ function setSyncIndicator(state) {
     if (state === 'ok')       { btn.textContent = '☁️ Guardado ✓';  btn.disabled = false; setTimeout(() => { btn.textContent = '☁️ Guardar'; }, 2000); }
     if (state === 'idle')     { btn.textContent = '☁️ Guardar';      btn.disabled = false; }
     if (state === 'error')    { btn.textContent = '☁️ Error';        btn.disabled = false; setTimeout(() => { btn.textContent = '☁️ Guardar'; }, 3000); }
+}
+
+async function loadSilentFromSheets() {
+    try {
+        const url = getSyncUrl();
+        const response = await fetch(url);
+        const data = await response.json();
+        if (Array.isArray(data.prompts)) { prompts = data.prompts; localStorage.setItem('prompts', JSON.stringify(prompts)); }
+        if (Array.isArray(data.folders)) { folders = data.folders; localStorage.setItem('folders', JSON.stringify(folders)); }
+        renderView();
+    } catch (err) {
+        console.error('Error cargando desde Sheets:', err);
+    }
 }
 
 async function pushToSheets() {
